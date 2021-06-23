@@ -1,0 +1,65 @@
+<%- include('partials/header'); -%>
+<body>
+ <h1>Upload Files to s3-bucket: </h1>
+ <br>
+ <hr>
+    <form  action="/" method="post">
+        <div class="form-row">
+                               
+                 <div class="form-group row">
+                    <label  class="col-sm-3 col-form-label"  for="bucket">s3-bucket</label>
+                    <div class="col-sm-8">
+                      <input type="text"  name="bucket" id="bucket" 
+                      class="form-control col-sm-8 " placeholder="s3-bucket"
+                      value="<%=bucket%>" required="true">
+                    </div>
+                  </div>
+                  <div class="form-group row">
+                    <label  class="col-sm-3 col-form-label"  for="bucket">s3-bucket</label>
+                    <div class="col-sm-8">
+                      <input type="text"  name="bucket" id="bucket" 
+                      class="form-control col-sm-8 " placeholder="s3-bucket"
+                      value="<%=bucket%>" required="true">
+                    </div>
+                  </div>
+                  <div class="form-group row">
+                    <label  class="col-sm-3 col-form-label"  for="bucket">s3-bucket</label>
+                    <div class="col-sm-8">
+                      <input type="text"  name="bucket" id="bucket" 
+                      class="form-control col-sm-8 " placeholder="s3-bucket"
+                      value="<%=bucket%>" required="true">
+                    </div>
+                  </div>
+                  <hr>
+
+
+                  <div class="form-group row">
+                    <label  class="col-sm-3 col-form-label"  for="access">prefix</label>
+                    <div class="col-sm-8">
+                      <input type="text" class="form-control  col-sm-8"  name="prefix" id="prefix" 
+                      placeholder="if prefix = data then we are loading the file at location s3://<bucket>/<data>/..."  
+                       required="true">
+                    </div>
+                  </div>
+
+                  <br><br><br><br>
+                 
+                <div class="form-group row">
+                    <label  class="col-sm-3 col-form-label"  for="access">Upload to above location 
+                    </label>  
+                    <div class="col-sm-8">   
+                      <input id="input-5" name="inputfile" type="file" class="file"  data-show-upload="false" data-show-caption="true" multiple>      
+                    </div>
+                  </div>
+
+                  <br><hr>
+            <div class="col">
+                <button  id="upload" type="submit" class="btn btn-primary btn-lg   pull-right">Upload</button>
+             </div>
+    </div>
+    
+    
+    </form>
+          </div>
+</body>
+</html>
