@@ -1,0 +1,127 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: spacyner2202
+  generateName: argo-mnist-template-
+  annotations:
+    scenarios.ai.sap.com/description: spacyner2202
+    scenarios.ai.sap.com/name: spacyner2202
+    executables.ai.sap.com/name: spacyner2202
+    executables.ai.sap.com/description: "Spacy Ner"
+    artifacts.ai.sap.com/training-data.kind: "dataset"
+    artifacts.ai.sap.com/model.kind: "model"
+  labels:
+    ai.sap.com/version: 0.1.0
+    scenarios.ai.sap.com/id: spacyner2202
+spec:
+  imagePullSecrets:
+  - name: amit-docker-registry-secret
+  entrypoint: churn
+  
+  volumeClaimTemplates:
+  - metadata:
+      name: workdir
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+
+  arguments:
+    parameters:
+    - name: training-epochs
+      value: 100
+
+  templates:
+  - name: churn
+    steps:
+   
+    - - name: train-model
+        template: train-model
+    - - name: test-model
+        template: test-model
+
+  - name: preprocess-inputs
+    metadata:
+      annotations:
+        traffic.sidecar.istio.io/includeOutboundIPRanges: 172.20.0.0/16,100.64.0.0/10,100.100.0.0/16,169.254.169.254/32,100.64.0.0/13,100.96.0.0/11,10.250.0.0/16,100.96.0.0/11,10.250.0.0/16,100.64.0.0/13
+    container:
+      image: "mlf.docker.repositories.sapcdn.io/spacyner:latest"
+      command: [sh, -c]
+      args:
+      - >
+        echo "preprocess:";
+        mkdir -p /mnt/model;
+        mkdir -p /mnt/tmp;
+        python /preprocess.py;
+      env:
+      - name: DATA_FOLDER
+        value: /training/input_data
+      - name: OUT_FOLDER
+        value: /mnt/tmp
+      volumeMounts:
+      - name: workdir
+        mountPath: /mnt
+    inputs:
+      artifacts:
+      - name: training-data
+        path: /training/input_data
+        archive:
+          none: {}
+
+  - name: train-model
+    metadata:
+      annotations:
+        traffic.sidecar.istio.io/includeOutboundIPRanges: 172.20.0.0/16,100.64.0.0/10,100.100.0.0/16,169.254.169.254/32,100.64.0.0/13,100.96.0.0/11,10.250.0.0/16,100.96.0.0/11,10.250.0.0/16,100.64.0.0/13
+    container:
+      image: "mlf.docker.repositories.sapcdn.io/spacyner:latest"
+      command: [sh, -c]
+      args:
+      - >
+        echo "training:";
+        python /train.py;
+      env:
+      - name: NUMBER_OF_EPOCHS
+        value: "{{workflow.parameters.training-epochs}}"
+      - name: DATA_FOLDER
+        value: /training/input_data
+      - name: OUT_FOLDER
+        value: /mnt/tmp
+      - name: MODEL_FOLDER
+        value: /mnt/model
+      volumeMounts:
+      - name: workdir
+        mountPath: /mnt
+    inputs:
+      artifacts:
+      - name: training-data
+        path: /training/input_data
+        archive:
+          none: {}
+
+  - name: test-model
+    metadata:
+      annotations:
+        traffic.sidecar.istio.io/includeOutboundIPRanges: 172.20.0.0/16,100.64.0.0/10,100.100.0.0/16,169.254.169.254/32,100.64.0.0/13,100.96.0.0/11,10.250.0.0/16,100.96.0.0/11,10.250.0.0/16,100.64.0.0/13
+    container:
+      image: "mlf.docker.repositories.sapcdn.io/spacyner:latest"
+      command: [sh, -c]
+      args:
+      - >
+        echo "testing";
+        python /test.py;
+      env:
+      - name: OUT_FOLDER
+        value: /mnt/tmp
+      - name: MODEL_FOLDER
+        value: /mnt/model
+      volumeMounts:
+      - name: workdir
+        mountPath: /mnt
+    outputs:
+      artifacts:
+      - name: model
+        path: /mnt/model
+        globalName: model
+        archive:
+          none: {}
